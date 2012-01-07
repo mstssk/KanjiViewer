@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical" android:layout_width="fill_parent"
+	android:layout_height="fill_parent" android:id="@+id/background" android:background="@android:color/white">
+	<LinearLayout android:layout_height="wrap_content"
+		android:orientation="horizontal" android:layout_width="fill_parent"
+		android:layout_gravity="center_vertical" android:id="@+id/form_layout"
+		android:paddingLeft="5px" android:paddingTop="5px">
+		<EditText android:text="" android:layout_height="wrap_content"
+			android:id="@+id/input_form" android:inputType="text"
+			android:imeOptions="normal" android:hint="@string/msg_hint"
+			android:layout_gravity="center_vertical" android:layout_width="0dip"
+			android:layout_weight="1.0"></EditText>
+		<ImageButton android:layout_height="wrap_content"
+			android:layout_gravity="center_vertical" android:id="@+id/button_enter"
+			android:layout_width="40dip" android:paddingBottom="5px"
+			android:paddingLeft="5px" android:paddingRight="5px"
+			android:paddingTop="0px" android:src="@drawable/button_enter"></ImageButton>
+	</LinearLayout>
+	<ScrollView android:id="@+id/scroll_view"
+		android:layout_width="fill_parent" android:layout_height="fill_parent"
+		android:layout_margin="0dip" android:focusable="false">
+		<!--
+			<include android:layout_width="wrap_content"
+			android:layout_height="wrap_content" layout="@layout/text_view"
+			android:layout_gravity="center_horizontal"
+			android:id="@+id/include_text" android:layout_margin="0px"></include>
+		-->
+		<TextView android:id="@+id/include_text" android:textSize="@dimen/text_size"
+			android:layout_margin="0dip" android:padding="0dip"
+			android:layout_height="fill_parent" android:layout_width="fill_parent"
+			android:gravity="center_horizontal" android:text="@string/msg_default"
+			android:freezesText="true" android:textColor="@android:color/black"></TextView>
+	</ScrollView>
+</LinearLayout>
