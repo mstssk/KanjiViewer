@@ -1,75 +1,97 @@
+
 package jp.mstssk.kanji_viewer;
 
 import java.io.File;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class KanjiViewerActivity extends Activity implements TextWatcher,
-        OnClickListener, OnFocusChangeListener {
-    
+import com.googlecode.androidannotations.annotations.AfterTextChange;
+import com.googlecode.androidannotations.annotations.AfterViews;
+import com.googlecode.androidannotations.annotations.Click;
+import com.googlecode.androidannotations.annotations.EActivity;
+import com.googlecode.androidannotations.annotations.SystemService;
+import com.googlecode.androidannotations.annotations.ViewById;
+import com.googlecode.androidannotations.annotations.sharedpreferences.Pref;
+
+// TODO 2013-03-30 AndroidAnnotationを使う形にリファクタリング中
+// TODO 2013-04-02 表示色, フォントについては、管理する別クラスを持った方が良さそう
+
+/**
+ * 漢字ビューワ メイン画面
+ * 
+ * @author mstssk
+ */
+@EActivity(R.layout.main)
+public class KanjiViewerActivity extends Activity {
+
     private static final int MENU_CUSTOM_FONT = 0;
     private static final int MENU_ORIENTATION = 1;
     private static final int MENU_INVERT_COLOR = 2;
 
-    private TextView text_view;
-    private EditText input_form;
-    private InputMethodManager imm;
+    @ViewById(R.id.include_text)
+    TextView textView;
 
-    private SharedPreferences pref;
-    
-    private int current_color;
+    @ViewById(R.id.input_form)
+    EditText textBox;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+    @ViewById(R.id.background)
+    View background;
 
-        pref = PreferenceManager.getDefaultSharedPreferences(this);
+    @SystemService
+    InputMethodManager imm;
 
-        imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-        
-        text_view = (TextView) findViewById(R.id.include_text);
-        text_view.setOnClickListener(this);
+    @Pref
+    KanjiViewerPrefs_ prefs;
 
-        input_form = (EditText) findViewById(R.id.input_form);
-        input_form.addTextChangedListener(this);
-        input_form.setOnFocusChangeListener(this);
+    @AfterViews
+    void initViews() {
+        textBox.setOnFocusChangeListener(new OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                focusChange(v, hasFocus);
+            }
+        });
+        setThemeColor(prefs.KEY_THEME().get());
+    }
 
-        findViewById(R.id.button_enter).setOnClickListener(this);
-        
-        setThemeColor(pref.getInt(getString(R.string.key_theme), Color.WHITE));
+    /**
+     * 入力フォーカス変更時にSIPの表示制御をする
+     * 
+     * @param v
+     * @param hasFocus
+     */
+    private void focusChange(View v, boolean hasFocus) {
+        if (hasFocus) {
+            imm.showSoftInput(v, 0);
+        } else {
+            hideIMEPanel(v);
+        }
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        
+
         String str = getIntent().getStringExtra(Intent.EXTRA_TEXT);
         if (str != null) {
-            input_form.setText(str);
+            textBox.setText(str);
         }
-
     }
 
     @Override
@@ -77,52 +99,53 @@ public class KanjiViewerActivity extends Activity implements TextWatcher,
         super.onResume();
         initFont();
     }
-    
-    @Override
-    public void onClick(View v) {
+
+    /**
+     * 文字入力パネルを隠す
+     * 
+     * @param v
+     */
+    @Click({
+            R.id.button_enter, R.id.include_text
+    })
+    void hideIMEPanel(View v) {
         imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
     }
 
-    @Override
-    public void onFocusChange(View v, boolean hasFocus) {
-        if (hasFocus) {
-            imm.showSoftInput(v, 0);
-        } else {
-            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-        }
+    /**
+     * 文字入力時、拡大エリアに反映する
+     * 
+     * @param s textBoxの内容
+     */
+    @AfterTextChange({
+            R.id.input_form
+    })
+    void setText(Editable s) {
+        textView.setText(s.toString());
     }
-
-    public void afterTextChanged(Editable s) {
-        text_view.setText(s.toString());
-    }
-
-    public void beforeTextChanged(CharSequence s, int start, int count,
-            int after) {}
-
-    public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        
+
         boolean isOrientationFixed = false;
         try {
             // 本体設定のセンサーによる画面方向切り替えがOFFなら true
-            isOrientationFixed =  Settings.System.getInt(getContentResolver(), 
-                Settings.System.ACCELEROMETER_ROTATION) == 0 ? true : false;
+            isOrientationFixed = Settings.System.getInt(getContentResolver(),
+                    Settings.System.ACCELEROMETER_ROTATION) == 0 ? true : false;
         } catch (Exception e) {
             Log.e("mstssk", e.getLocalizedMessage(), e);
         }
-        
+
         if (isOrientationFixed) {
             menu.add(0, MENU_ORIENTATION, 0, R.string.menu_rotation).setIcon(
                     android.R.drawable.ic_menu_always_landscape_portrait);
         }
-        
+
         menu.add(0, MENU_CUSTOM_FONT, 0, R.string.menu_custom_font).setIcon(
                 android.R.drawable.ic_menu_manage);
         menu.add(0, MENU_INVERT_COLOR, 0, R.string.menu_invert).setIcon(
                 R.drawable.ic_menu_invert);
-        
+
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -143,55 +166,76 @@ public class KanjiViewerActivity extends Activity implements TextWatcher,
         }
         return true;
     }
-    
+
+    /**
+     * カスタムフォントのダイアログ表示
+     */
     private void showCustomFontDialog() {
-        // カスタムフォントのダイアログ表示
-        startActivity(new Intent(this, SetteiGamenActivity.class));
-    }
-    
-    private void invertThemeColor() {
-        setThemeColor((current_color == Color.WHITE) ? Color.BLACK : Color.WHITE);
-    }
-    
-    private void setThemeColor(int theme) {
-        current_color = theme;
-        int inverted = (current_color == Color.WHITE) ? Color.BLACK : Color.WHITE;
-        findViewById(R.id.background).setBackgroundColor(current_color);
-        text_view.setTextColor(inverted);
-        SharedPreferences.Editor editor = pref.edit();
-        editor.putInt(getString(R.string.key_theme), current_color);
-        editor.commit();
+        startActivity(new Intent(this, FontFilePrefActivity.class));
     }
 
+    /**
+     * 表示色反転
+     */
+    private void invertThemeColor() {
+        setThemeColor(invertColor(prefs.KEY_THEME().get()));
+    }
+
+    /**
+     * 表示色設定
+     */
+    private void setThemeColor(int color) {
+        background.setBackgroundColor(color);
+        textView.setTextColor(invertColor(color));
+        prefs.edit().KEY_THEME().put(color).apply();
+    }
+
+    /**
+     * 逆転した表示色を取得
+     * 
+     * @param color
+     * @return
+     */
+    private int invertColor(int color) {
+        return (color == Color.WHITE) ? Color.BLACK : Color.WHITE;
+    }
+
+    /**
+     * 画面方向切り替え
+     */
     private void toggleOrientation() {
-        // 画面方向切り替え
         int orientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
         switch (getResources().getConfiguration().orientation) {
             case Configuration.ORIENTATION_LANDSCAPE:
                 orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
-            break;
+                break;
             case Configuration.ORIENTATION_PORTRAIT:
                 orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-            break;
+                break;
             default:
-            break;
+                break;
         }
         if (orientation != ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
-            setRequestedOrientation(orientation);
+            this.setRequestedOrientation(orientation);
         }
     }
-    
+
+    /**
+     * フォント読み込み、初期化
+     */
     private void initFont() {
-        String path = pref.getString(getString(R.string.key_font_path), null);
-        if (path != null) {
-            if (new File(path).exists()){
-                Typeface typeface = Typeface.createFromFile(path);
-                text_view.setTypeface(typeface);
-            } else {
-                Toast.makeText(this, R.string.label_failed_load_font, Toast.LENGTH_SHORT).show();
-            }
+        String path = prefs.FONT_PATH().getOr(null);
+
+        if (path == null) {
+            textView.setTypeface(null);
+            return;
+        }
+
+        if (new File(path).exists()) {
+            Typeface typeface = Typeface.createFromFile(path);
+            textView.setTypeface(typeface);
         } else {
-            text_view.setTypeface(null);
+            Toast.makeText(this, R.string.label_failed_load_font, Toast.LENGTH_SHORT).show();
         }
     }
 }

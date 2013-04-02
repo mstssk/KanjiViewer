@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">漢字ビューワ</string>
-	<string name="msg_hint">ここに漢字を入力</string>
-	<string name="msg_default">漢</string>
-	<string name="menu_custom_font">カスタムフォント</string>
-	<string name="msg_dialog_current_font">フォントファイルの場所: </string>
-	<string name="label_select_font">フォント選択 </string>
-	<string name="label_reset">リセット </string>
-	<string name="label_default">デフォルト </string>
-	<string name="key_font_path">FONT_PATH</string>
+
+    <string name="app_name">漢字ビューワ</string>
+    <string name="msg_hint">ここに漢字を入力</string>
+    <string name="msg_default">漢</string>
+    <string name="menu_custom_font">カスタムフォント</string>
+    <string name="msg_dialog_current_font">フォントファイルの場所: </string>
+    <string name="label_select_font">フォント選択 </string>
+    <string name="label_reset">リセット </string>
+    <string name="label_default">デフォルト </string>
     <string name="text_description_custom_font">お持ちのフォントファイルを設定できます。TrueTypeおよびOpenTypeのフォントに対応しています。 </string>
     <string name="text_file_path_hint">入力例 /sdcard/font.ttf</string>
     <string name="text_not_found_filemanager">フォント選択には、別途ファイルマネージャアプリが必要です。&lt;br&gt;&lt;a href=&quot;market://search?q=pname:org.openintents.filemanager&quot;&gt;OI File Manager&lt;/a&gt;と&lt;a href=&quot;market://search?q=pname:com.metago.astro&quot;&gt;ASTRO File Manager&lt;/a&gt;での動作を確認済です。</string>
     <string name="label_not_found_filemanager">ファイルマネージャーがありません</string>
     <string name="label_close">閉じる</string>
     <string name="label_failed_load_font">フォント読み込み失敗</string>
-<string name="menu_rotation">画面回転</string>
-<string name="menu_invert">表示色反転</string>
-<string name="key_theme">KEY_THEME</string>
+    <string name="menu_rotation">画面回転</string>
+    <string name="menu_invert">表示色反転</string>
+
 </resources>
