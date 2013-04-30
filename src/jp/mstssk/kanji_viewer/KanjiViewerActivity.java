@@ -11,9 +11,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.provider.Settings;
 import android.text.Editable;
-import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnFocusChangeListener;
 import android.view.inputmethod.InputMethodManager;
@@ -25,12 +23,13 @@ import com.googlecode.androidannotations.annotations.AfterTextChange;
 import com.googlecode.androidannotations.annotations.AfterViews;
 import com.googlecode.androidannotations.annotations.Click;
 import com.googlecode.androidannotations.annotations.EActivity;
+import com.googlecode.androidannotations.annotations.OptionsItem;
+import com.googlecode.androidannotations.annotations.OptionsMenu;
 import com.googlecode.androidannotations.annotations.SystemService;
 import com.googlecode.androidannotations.annotations.ViewById;
 import com.googlecode.androidannotations.annotations.sharedpreferences.Pref;
 
 // TODO 2013-03-30 AndroidAnnotationを使う形にリファクタリング中
-// TODO 2013-04-02 表示色, フォントについては、管理する別クラスを持った方が良さそう
 
 /**
  * 漢字ビューワ メイン画面
@@ -38,11 +37,8 @@ import com.googlecode.androidannotations.annotations.sharedpreferences.Pref;
  * @author mstssk
  */
 @EActivity(R.layout.main)
+@OptionsMenu(R.menu.main_menu)
 public class KanjiViewerActivity extends Activity {
-
-    private static final int MENU_CUSTOM_FONT = 0;
-    private static final int MENU_ORIENTATION = 1;
-    private static final int MENU_INVERT_COLOR = 2;
 
     @ViewById(R.id.include_text)
     TextView textView;
@@ -126,58 +122,34 @@ public class KanjiViewerActivity extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
-        boolean isOrientationFixed = false;
-        try {
-            // 本体設定のセンサーによる画面方向切り替えがOFFなら true
-            isOrientationFixed = Settings.System.getInt(getContentResolver(),
-                    Settings.System.ACCELEROMETER_ROTATION) == 0 ? true : false;
-        } catch (Exception e) {
-            Log.e("mstssk", e.getLocalizedMessage(), e);
-        }
-
-        if (isOrientationFixed) {
-            menu.add(0, MENU_ORIENTATION, 0, R.string.menu_rotation).setIcon(
-                    android.R.drawable.ic_menu_always_landscape_portrait);
-        }
-
-        menu.add(0, MENU_CUSTOM_FONT, 0, R.string.menu_custom_font).setIcon(
-                android.R.drawable.ic_menu_manage);
-        menu.add(0, MENU_INVERT_COLOR, 0, R.string.menu_invert).setIcon(
-                R.drawable.ic_menu_invert);
-
+        // システムの画面回転が無効な場合だけ、手動回転メニューを表示する
+        menu.findItem(R.id.menu_rotation).setVisible(isAutoRotationOff());
         return super.onCreateOptionsMenu(menu);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case MENU_CUSTOM_FONT:
-                showCustomFontDialog();
-                break;
-            case MENU_ORIENTATION:
-                toggleOrientation();
-                break;
-            case MENU_INVERT_COLOR:
-                invertThemeColor();
-                break;
-            default:
-                return false;
-        }
-        return true;
+    /**
+     * 本体設定のセンサーによる画面方向切り替えがOFFなら true
+     * 
+     * @return
+     */
+    private boolean isAutoRotationOff() {
+        String settingRotation = Settings.System.ACCELEROMETER_ROTATION;
+        return Settings.System.getInt(getContentResolver(), settingRotation, 1) == 0;
     }
 
     /**
      * カスタムフォントのダイアログ表示
      */
-    private void showCustomFontDialog() {
+    @OptionsItem(R.id.menu_custom_font)
+    void showCustomFontDialog() {
         startActivity(new Intent(this, FontFilePrefActivity.class));
     }
 
     /**
      * 表示色反転
      */
-    private void invertThemeColor() {
+    @OptionsItem(R.id.menu_invert)
+    void invertThemeColor() {
         setThemeColor(invertColor(prefs.KEY_THEME().get()));
     }
 
@@ -203,7 +175,8 @@ public class KanjiViewerActivity extends Activity {
     /**
      * 画面方向切り替え
      */
-    private void toggleOrientation() {
+    @OptionsItem(R.id.menu_rotation)
+    void toggleOrientation() {
         int orientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
         switch (getResources().getConfiguration().orientation) {
             case Configuration.ORIENTATION_LANDSCAPE:
