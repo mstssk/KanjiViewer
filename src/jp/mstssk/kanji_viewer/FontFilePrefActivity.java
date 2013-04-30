@@ -63,6 +63,7 @@ public class FontFilePrefActivity extends Activity {
             path = null;
         }
         prefs.edit().FONT_PATH().put(path).apply();
+        finish();
     }
 
     /**
