@@ -142,7 +142,7 @@ public class KanjiViewerActivity extends Activity {
      */
     @OptionsItem(R.id.menu_custom_font)
     void showCustomFontDialog() {
-        startActivity(new Intent(this, FontFilePrefActivity.class));
+        startActivity(new Intent(this, FontFilePrefActivity_.class));
     }
 
     /**
